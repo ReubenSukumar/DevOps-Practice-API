@@ -17,7 +17,7 @@ public class SystemInfoController {
     public Map<String, String> health() {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("status", "UP");
-        response.put("service", "devops-practice-api-Deployment");
+        response.put("service", "devops-practice-api-Testing");
         response.put("timestamp", LocalDateTime.now().toString());
         return response;
     }
@@ -25,9 +25,9 @@ public class SystemInfoController {
     @GetMapping("/version")
     public Map<String, String> version() {
         Map<String, String> response = new LinkedHashMap<>();
-        response.put("application", "devops-practice-api-Deployment");
+        response.put("application", "devops-practice-api-Testing");
         response.put("version", "0.0.1-SNAPSHOT");
-        response.put("environment", "Deployment");
+        response.put("environment", "Testing");
         return response;
     }
 
@@ -36,7 +36,7 @@ public class SystemInfoController {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("hostname", InetAddress.getLocalHost().getHostName());
         response.put("ip_address", InetAddress.getLocalHost().getHostAddress());
-        response.put("environment", "Deployment");
+        response.put("environment", "Testing");
         response.put("java_version", System.getProperty("java.version"));
         response.put("os_name", System.getProperty("os.name"));
         return response;
