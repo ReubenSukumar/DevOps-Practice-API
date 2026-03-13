@@ -21,13 +21,13 @@ jobs:
       - name: Set target directory and service based on triggering branch
         run: |
           if [ "${BRANCH_NAME}" = "main" ]; then
-            echo "TARGET_DIR=/home/ubuntu/devops-practice-api" >> $GITHUB_ENV
+            echo "TARGET_DIR=/home/ubuntu/opt/devops-practice-api" >> $GITHUB_ENV
             echo "SERVICE_NAME=devops-practice-api" >> $GITHUB_ENV
           elif [ "${BRANCH_NAME}" = "Testing" ]; then
-            echo "TARGET_DIR=/home/ubuntu/devops-practice-api-testing" >> $GITHUB_ENV
+            echo "TARGET_DIR=/home/ubuntu/opt/devops-practice-api-testing" >> $GITHUB_ENV
             echo "SERVICE_NAME=devops-practice-api-testing" >> $GITHUB_ENV
           elif [ "${BRANCH_NAME}" = "Deployment" ]; then
-            echo "TARGET_DIR=/home/ubuntu/devops-practice-api-deployment" >> $GITHUB_ENV
+            echo "TARGET_DIR=/home/ubuntu/opt/devops-practice-api-deployment" >> $GITHUB_ENV
             echo "SERVICE_NAME=devops-practice-api-deployment" >> $GITHUB_ENV
           else
             echo "Unsupported branch: ${BRANCH_NAME}"
