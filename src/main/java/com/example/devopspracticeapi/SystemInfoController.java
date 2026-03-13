@@ -27,7 +27,7 @@ public class SystemInfoController {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("application", "devops-practice-api");
         response.put("version", "0.0.1-SNAPSHOT");
-        response.put("environment", "test");
+        response.put("environment", "Main");
         return response;
     }
 
@@ -36,7 +36,7 @@ public class SystemInfoController {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("hostname", InetAddress.getLocalHost().getHostName());
         response.put("ip_address", InetAddress.getLocalHost().getHostAddress());
-        response.put("environment", "test");
+        response.put("environment", "Main");
         response.put("java_version", System.getProperty("java.version"));
         response.put("os_name", System.getProperty("os.name"));
         return response;
