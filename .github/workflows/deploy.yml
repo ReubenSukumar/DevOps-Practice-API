@@ -34,6 +34,25 @@ jobs:
             exit 1
           fi
 
+      - name: Show branch and commit being built
+        run: |
+          echo "Branch: ${BRANCH_NAME}"
+          git branch --show-current
+          git rev-parse HEAD
+
+      - name: Verify application.properties exists before build
+        run: |
+          ls -l src/main/resources || true
+          cat src/main/resources/application.properties || true
+
+      - name: Build JAR using Maven
+        run: mvn clean package
+
+      - name: Verify application.properties inside built JAR
+        run: |
+          unzip -l target/devops-practice-api-0.0.1-SNAPSHOT.jar | grep application || true
+          unzip -p target/devops-practice-api-0.0.1-SNAPSHOT.jar BOOT-INF/classes/application.properties || true
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
