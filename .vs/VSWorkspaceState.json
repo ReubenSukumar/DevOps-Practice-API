@@ -7,9 +7,8 @@
     "\\src\\main\\java\\com",
     "\\src\\main\\java\\com\\example",
     "\\src\\main\\java\\com\\example\\devopspracticeapi",
-    "\\src\\resources",
-    "\\target"
+    "\\src\\resources"
   ],
-  "SelectedNode": "\\target\\maven-archiver",
+  "SelectedNode": "\\Hello.txt",
   "PreviewInSolutionExplorer": false
 }
