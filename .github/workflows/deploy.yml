@@ -1,0 +1,72 @@
+name: Deploy DevOps Practice API to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - Testing
+      - Deployment
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set branch name
+        run: echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Set target directory and service based on triggering branch
+        run: |
+          if [ "${BRANCH_NAME}" = "main" ]; then
+            echo "TARGET_DIR=/home/ubuntu/devops-practice-api" >> $GITHUB_ENV
+            echo "SERVICE_NAME=devops-practice-api" >> $GITHUB_ENV
+          elif [ "${BRANCH_NAME}" = "Testing" ]; then
+            echo "TARGET_DIR=/home/ubuntu/devops-practice-api-testing" >> $GITHUB_ENV
+            echo "SERVICE_NAME=devops-practice-api-testing" >> $GITHUB_ENV
+          elif [ "${BRANCH_NAME}" = "Deployment" ]; then
+            echo "TARGET_DIR=/home/ubuntu/devops-practice-api-deployment" >> $GITHUB_ENV
+            echo "SERVICE_NAME=devops-practice-api-deployment" >> $GITHUB_ENV
+          else
+            echo "Unsupported branch: ${BRANCH_NAME}"
+            exit 1
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build JAR using Maven
+        run: mvn clean package
+
+      - name: Verify build output
+        run: ls -lh target
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create target directory on EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+            mkdir -p ${TARGET_DIR}
+          "
+
+      - name: Copy JAR to EC2
+        run: |
+          scp target/devops-practice-api-0.0.1-SNAPSHOT.jar \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${TARGET_DIR}/devops-practice-api-0.0.1-SNAPSHOT.jar
+
+      - name: Restart branch-specific service on EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+            sudo systemctl restart ${SERVICE_NAME}
+            sudo systemctl status ${SERVICE_NAME} --no-pager
+          "
