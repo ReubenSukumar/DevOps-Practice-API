@@ -1,4 +1,4 @@
-name: Deploy DevOps Practice API to EC2
+name: Deploy DevOps Practice API to EC2 
 
 on:
   push:
