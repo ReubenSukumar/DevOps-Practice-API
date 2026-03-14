@@ -38,7 +38,7 @@ jobs:
              [ "${{ inputs.Info_Service }}" != "true" ] && \
              [ "${{ inputs.Health_Service }}" != "true" ] && \
              [ "${{ inputs.Hostname_Service }}" != "true" ]; then
-            echo "Error: select at least one service or choose deploy_all."
+            echo "Error: select at least one service or choose All_Services."
             exit 1
           fi
 
@@ -57,21 +57,21 @@ jobs:
         run: |
           set -e
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Info_Service }}" = "true" ]; then
             echo "Building info-service"
             cd info-service
             mvn clean package -DskipTests
             cd ..
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Health_Service }}" = "true" ]; then
             echo "Building health-service"
             cd health-service
             mvn clean package -DskipTests
             cd ..
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Hostname_Service }}" = "true" ]; then
             echo "Building hostname-service"
             cd hostname-service
             mvn clean package -DskipTests
@@ -97,17 +97,17 @@ jobs:
         run: |
           set -e
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Info_Service }}" = "true" ]; then
             scp info-service/target/info-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/info-service/
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Health_Service }}" = "true" ]; then
             scp health-service/target/health-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/health-service/
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Hostname_Service }}" = "true" ]; then
             scp hostname-service/target/hostname-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/hostname-service/
           fi
@@ -118,29 +118,29 @@ jobs:
 
           ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl daemon-reload"
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Info_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart info-service"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Health_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart health-service"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Hostname_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart hostname-service"
           fi
 
       - name: Show status for selected service(s)
         run: |
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Info_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status info-service --no-pager"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Health_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status health-service --no-pager"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Hostname_Service }}" = "true" ]; then
             ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status hostname-service --no-pager"
           fi
 
@@ -148,18 +148,15 @@ jobs:
         run: |
           echo "Deployment completed."
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Info_Service }}" = "true" ]; then
             echo "Info Service     -> http://${{ secrets.EC2_HOST }}:8090/info"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Health_Service }}" = "true" ]; then
             echo "Health Service   -> http://${{ secrets.EC2_HOST }}:8091/health"
           fi
 
-          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+          if [ "${{ inputs.All_Services }}" = "true" ] || [ "${{ inputs.Hostname_Service }}" = "true" ]; then
             echo "Hostname Service -> http://${{ secrets.EC2_HOST }}:8092/hostname"
-<<<<<<< HEAD
           fi
-=======
-          fi
->>>>>>> a2a40c596d3a2645937ac21f18c13f2ac0208bfb
+
