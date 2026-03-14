@@ -10,7 +10,7 @@ The deployment workflow allows selecting which services to deploy during runtime
 
 ---
 
-# Architecture
+## Architecture
 
 GitHub Repository
 │
