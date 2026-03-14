@@ -28,16 +28,19 @@ GitHub Repository
 
 # Services
 
+```text
 | Service | Port | Endpoint |
 |------|------|------|
 | info-service | 8090 | /info |
 | health-service | 8091 | /health |
 | hostname-service | 8092 | /hostname |
+```
 
 ---
 
 # Repository Structure
 
+```text
 ├── info-service
 │ ├── src
 │ └── pom.xml
@@ -52,6 +55,7 @@ GitHub Repository
 │
 └── .github/workflows
 └── deploy-selected-service.yml
+```
 
 ---
 
@@ -72,10 +76,12 @@ The workflow allows selecting which services to deploy.
 
 # GitHub Secrets Required
 
+```text
 | Secret | Description |
 |------|------|
 | EC2_HOST | Public IP or DNS of EC2 instance |
 | EC2_SSH_KEY | Private SSH key used for deployment |
+```
 
 ---
 
