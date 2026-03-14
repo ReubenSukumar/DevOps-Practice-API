@@ -1,50 +1,58 @@
-name: Deploy DevOps Practice API to EC2 
+name: Deploy Selected Java Microservice
 
 on:
-  push:
-    branches:
-      - main
-      - Testing
-      - Deployment
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: "Choose which service to deploy"
+        required: true
+        type: choice
+        options:
+          - info-service
+          - health-service
+          - hostname-service
+          - all
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Test-Feature branch
         uses: actions/checkout@v4
+        with:
+          ref: Test-Feature
 
-      - name: Set branch name
-        run: echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
-      - name: Set target directory and service based on triggering branch
-        run: |
-          if [ "${BRANCH_NAME}" = "main" ]; then
-            echo "TARGET_DIR=/opt/devops-practice-api" >> $GITHUB_ENV
-            echo "SERVICE_NAME=devops-practice-api" >> $GITHUB_ENV
-          elif [ "${BRANCH_NAME}" = "Testing" ]; then
-            echo "TARGET_DIR=/opt/devops-practice-api-testing" >> $GITHUB_ENV
-            echo "SERVICE_NAME=devops-practice-api-testing" >> $GITHUB_ENV
-          elif [ "${BRANCH_NAME}" = "Deployment" ]; then
-            echo "TARGET_DIR=/opt/devops-practice-api-deployment" >> $GITHUB_ENV
-            echo "SERVICE_NAME=devops-practice-api-deployment" >> $GITHUB_ENV
-          else
-            echo "Unsupported branch: ${BRANCH_NAME}"
-            exit 1
-          fi
-
-      - name: Setup Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
-      - name: Build JAR using Maven
-        run: mvn clean package
+      - name: Build selected service(s)
+        run: |
+          set -e
 
-      - name: Verify build output
-        run: ls -lh target
+          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
+            cd info-service
+            mvn clean package -DskipTests
+
+          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
+            cd health-service
+            mvn clean package -DskipTests
+
+          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
+            cd hostname-service
+            mvn clean package -DskipTests
+
+          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
+            cd info-service
+            mvn clean package -DskipTests
+            cd ../health-service
+            mvn clean package -DskipTests
+            cd ../hostname-service
+            mvn clean package -DskipTests
+          fi
 
       - name: Setup SSH
         run: |
@@ -53,20 +61,81 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create target directory on EC2
+      - name: Ensure target directories exist on EC2
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
-            mkdir -p ${TARGET_DIR}
+          ssh ubuntu@${{ secrets.EC2_HOST }} "
+            mkdir -p /home/ubuntu/microservices/info-service &&
+            mkdir -p /home/ubuntu/microservices/health-service &&
+            mkdir -p /home/ubuntu/microservices/hostname-service
           "
 
-      - name: Copy JAR to EC2
+      - name: Upload selected service(s)
         run: |
-          scp target/devops-practice-api-0.0.1-SNAPSHOT.jar \
-          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${TARGET_DIR}/devops-practice-api-0.0.1-SNAPSHOT.jar
+          set -e
 
-      - name: Restart branch-specific service on EC2
+          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
+            scp info-service/target/info-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/info-service/
+
+          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
+            scp health-service/target/health-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/health-service/
+
+          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
+            scp hostname-service/target/hostname-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/hostname-service/
+
+          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
+            scp info-service/target/info-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/info-service/
+
+            scp health-service/target/health-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/health-service/
+
+            scp hostname-service/target/hostname-service-0.0.1-SNAPSHOT.jar \
+              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/hostname-service/
+          fi
+
+      - name: Restart selected service(s)
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
-            sudo systemctl restart ${SERVICE_NAME}
-            sudo systemctl status ${SERVICE_NAME} --no-pager
-          "
+          set -e
+
+          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "
+              sudo systemctl daemon-reload &&
+              sudo systemctl restart info-service &&
+              sudo systemctl status info-service --no-pager
+            "
+
+          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "
+              sudo systemctl daemon-reload &&
+              sudo systemctl restart health-service &&
+              sudo systemctl status health-service --no-pager
+            "
+
+          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "
+              sudo systemctl daemon-reload &&
+              sudo systemctl restart hostname-service &&
+              sudo systemctl status hostname-service --no-pager
+            "
+
+          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "
+              sudo systemctl daemon-reload &&
+              sudo systemctl restart info-service &&
+              sudo systemctl restart health-service &&
+              sudo systemctl restart hostname-service &&
+              sudo systemctl status info-service --no-pager &&
+              sudo systemctl status health-service --no-pager &&
+              sudo systemctl status hostname-service --no-pager
+            "
+          fi
+
+      - name: Show deployed endpoints
+        run: |
+          echo "Deployment completed."
+          echo "Info Service     -> http://${{ secrets.EC2_HOST }}:8090/info"
+          echo "Health Service   -> http://${{ secrets.EC2_HOST }}:8091/health"
+          echo "Hostname Service -> http://${{ secrets.EC2_HOST }}:8092/hostname"
