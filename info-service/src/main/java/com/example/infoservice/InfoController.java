@@ -19,7 +19,7 @@ public class InfoController {
         response.put("ip_address", InetAddress.getLocalHost().getHostAddress());
         response.put("java_version", System.getProperty("java.version"));
         response.put("os_name", System.getProperty("os.name"));
-        response.put("Message", "Hello All!");
+        response.put("Message", "Bhubaneswar");
         return response;
     }
 }

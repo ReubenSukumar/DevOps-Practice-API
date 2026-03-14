@@ -17,7 +17,7 @@ public class HostnameController {
         response.put("service", "hostname-service");
         response.put("hostname", InetAddress.getLocalHost().getHostName());
         response.put("ip_address", InetAddress.getLocalHost().getHostAddress());
-        response.put("Message", "Boliye Bhai!");
+        response.put("Message", "Bengaluru");
         return response;
     }
 }
