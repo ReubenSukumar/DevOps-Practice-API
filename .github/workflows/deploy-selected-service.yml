@@ -1,23 +1,47 @@
-name: Deploy Selected Java Microservice
+name: Deploy Selected Java Microservices
 
 on:
   workflow_dispatch:
     inputs:
-      service_name:
-        description: "Choose which service to deploy"
+      Info_Service:
+        description: "Deploy Info-Service"
         required: true
-        type: choice
-        options:
-          - info-service
-          - health-service
-          - hostname-service
-          - all
+        type: boolean
+        default: false
+
+      Health_Service:
+        description: "Deploy Health-Service"
+        required: true
+        type: boolean
+        default: false
+
+      Hostname_Service:
+        description: "Deploy Hostname-Service"
+        required: true
+        type: boolean
+        default: false
+     
+      All_Services:
+        description: "Deploy All Services\n(Overrides individual selections)"
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate selection
+        run: |
+          if [ "${{ inputs.deploy_all }}" != "true" ] && \
+             [ "${{ inputs.deploy_info_service }}" != "true" ] && \
+             [ "${{ inputs.deploy_health_service }}" != "true" ] && \
+             [ "${{ inputs.deploy_hostname_service }}" != "true" ]; then
+            echo "Error: select at least one service or choose deploy_all."
+            exit 1
+          fi
+
       - name: Checkout Test-Feature branch
         uses: actions/checkout@v4
         with:
@@ -33,25 +57,25 @@ jobs:
         run: |
           set -e
 
-          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+            echo "Building info-service"
             cd info-service
             mvn clean package -DskipTests
+            cd ..
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+            echo "Building health-service"
             cd health-service
             mvn clean package -DskipTests
+            cd ..
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+            echo "Building hostname-service"
             cd hostname-service
             mvn clean package -DskipTests
-
-          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
-            cd info-service
-            mvn clean package -DskipTests
-            cd ../health-service
-            mvn clean package -DskipTests
-            cd ../hostname-service
-            mvn clean package -DskipTests
+            cd ..
           fi
 
       - name: Setup SSH
@@ -73,25 +97,17 @@ jobs:
         run: |
           set -e
 
-          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
             scp info-service/target/info-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/info-service/
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
             scp health-service/target/health-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/health-service/
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
-            scp hostname-service/target/hostname-service-0.0.1-SNAPSHOT.jar \
-              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/hostname-service/
-
-          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
-            scp info-service/target/info-service-0.0.1-SNAPSHOT.jar \
-              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/info-service/
-
-            scp health-service/target/health-service-0.0.1-SNAPSHOT.jar \
-              ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/health-service/
-
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
             scp hostname-service/target/hostname-service-0.0.1-SNAPSHOT.jar \
               ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/microservices/hostname-service/
           fi
@@ -100,42 +116,46 @@ jobs:
         run: |
           set -e
 
-          if [ "${{ github.event.inputs.service_name }}" = "info-service" ]; then
-            ssh ubuntu@${{ secrets.EC2_HOST }} "
-              sudo systemctl daemon-reload &&
-              sudo systemctl restart info-service &&
-              sudo systemctl status info-service --no-pager
-            "
+          ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl daemon-reload"
 
-          elif [ "${{ github.event.inputs.service_name }}" = "health-service" ]; then
-            ssh ubuntu@${{ secrets.EC2_HOST }} "
-              sudo systemctl daemon-reload &&
-              sudo systemctl restart health-service &&
-              sudo systemctl status health-service --no-pager
-            "
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart info-service"
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "hostname-service" ]; then
-            ssh ubuntu@${{ secrets.EC2_HOST }} "
-              sudo systemctl daemon-reload &&
-              sudo systemctl restart hostname-service &&
-              sudo systemctl status hostname-service --no-pager
-            "
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart health-service"
+          fi
 
-          elif [ "${{ github.event.inputs.service_name }}" = "all" ]; then
-            ssh ubuntu@${{ secrets.EC2_HOST }} "
-              sudo systemctl daemon-reload &&
-              sudo systemctl restart info-service &&
-              sudo systemctl restart health-service &&
-              sudo systemctl restart hostname-service &&
-              sudo systemctl status info-service --no-pager &&
-              sudo systemctl status health-service --no-pager &&
-              sudo systemctl status hostname-service --no-pager
-            "
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart hostname-service"
+          fi
+
+      - name: Show status for selected service(s)
+        run: |
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status info-service --no-pager"
+          fi
+
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status health-service --no-pager"
+          fi
+
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+            ssh ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl status hostname-service --no-pager"
           fi
 
       - name: Show deployed endpoints
         run: |
           echo "Deployment completed."
-          echo "Info Service     -> http://${{ secrets.EC2_HOST }}:8090/info"
-          echo "Health Service   -> http://${{ secrets.EC2_HOST }}:8091/health"
-          echo "Hostname Service -> http://${{ secrets.EC2_HOST }}:8092/hostname"
+
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_info_service }}" = "true" ]; then
+            echo "Info Service     -> http://${{ secrets.EC2_HOST }}:8090/info"
+          fi
+
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_health_service }}" = "true" ]; then
+            echo "Health Service   -> http://${{ secrets.EC2_HOST }}:8091/health"
+          fi
+
+          if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
+            echo "Hostname Service -> http://${{ secrets.EC2_HOST }}:8092/hostname"
+          fi
