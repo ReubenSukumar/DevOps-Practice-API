@@ -22,7 +22,7 @@ on:
         default: false
      
       All_Services:
-        description: "Deploy All Services\n(Overrides individual selections)"
+        description: "Deploy All Services — Overrides individual selections"
         required: true
         type: boolean
         default: false
