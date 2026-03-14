@@ -158,4 +158,8 @@ jobs:
 
           if [ "${{ inputs.deploy_all }}" = "true" ] || [ "${{ inputs.deploy_hostname_service }}" = "true" ]; then
             echo "Hostname Service -> http://${{ secrets.EC2_HOST }}:8092/hostname"
+<<<<<<< HEAD
           fi
+=======
+          fi
+>>>>>>> a2a40c596d3a2645937ac21f18c13f2ac0208bfb
