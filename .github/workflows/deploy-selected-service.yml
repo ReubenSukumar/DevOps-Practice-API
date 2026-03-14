@@ -9,7 +9,7 @@ on:
         type: choice
         options:
           - info-service
-          - health-service
+          - health-service 
           - hostname-service
           - all
 
