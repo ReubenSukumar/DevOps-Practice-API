@@ -16,6 +16,7 @@ public class HealthController {
         response.put("status", "UP");
         response.put("service", "Health-service");
         response.put("timestamp", LocalDateTime.now().toString());
+        response.put("Message", "Hello All!");
         return response;
     }
 }
