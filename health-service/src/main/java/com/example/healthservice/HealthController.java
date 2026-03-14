@@ -14,7 +14,8 @@ public class HealthController {
     public Map<String, String> health() {
         Map<String, String> response = new LinkedHashMap<>();
         response.put("status", "UP");
-        response.put("service", "health-service");
+        response.put("service", "Health-service");
+        response.put("Updated on 14-03-2026 T 14:50PM IST");
         response.put("timestamp", LocalDateTime.now().toString());
         return response;
     }
