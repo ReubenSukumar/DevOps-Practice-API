@@ -3,26 +3,26 @@ name: Deploy Selected Java Microservices
 on:
   workflow_dispatch:
     inputs:
-      All_Services:
-        description: "Deploy all services"
-        required: true
-        type: boolean
-        default: false
-
       Info_Service:
-        description: "Deploy info-service"
+        description: "Deploy Info-Service"
         required: true
         type: boolean
         default: false
 
       Health_Service:
-        description: "Deploy health-service"
+        description: "Deploy Health-Service"
         required: true
         type: boolean
         default: false
 
       Hostname_Service:
-        description: "Deploy hostname-service"
+        description: "Deploy Hostname-Service"
+        required: true
+        type: boolean
+        default: false
+     
+      All_Services:
+        description: "Deploy All Services (Overrides individual selections)"
         required: true
         type: boolean
         default: false
