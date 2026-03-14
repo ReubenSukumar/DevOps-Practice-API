@@ -12,15 +12,17 @@ The deployment workflow allows selecting which services to deploy during runtime
 
 ## Architecture
 
+```text
 GitHub Repository
 │
 ├── GitHub Actions Pipeline
 │
 └── AWS EC2 Instance
-│
-├── info-service (Port 8090)
-├── health-service (Port 8091)
-└── hostname-service (Port 8092)
+    │
+    ├── info-service (Port 8090)
+    ├── health-service (Port 8091)
+    └── hostname-service (Port 8092)
+```
 
 ---
 
